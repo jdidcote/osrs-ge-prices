@@ -15,7 +15,7 @@ from grand_exchange_api import (
 class GrandExchangeDB:
     def __init__(self):
         self.all_dates = get_all_dates()
-        self.db_file = 'Data/osrs_ge.sqlite'
+        self.db_file = '../Data/osrs_ge.sqlite'
         self._setup()
     
     def _setup(self):
