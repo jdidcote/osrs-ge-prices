@@ -5,7 +5,7 @@ import sqlite3
 
 import pandas as pd
 
-from grand_exchange_api import (
+from data.grand_exchange_api import (
     get_1h_history,
     get_all_dates,
     get_item_mapping
@@ -13,18 +13,19 @@ from grand_exchange_api import (
 
 
 class GrandExchangeDB:
-    def __init__(self):
+    def __init__(self, update_data: bool = True):
         self.all_dates = get_all_dates()
-        self.db_file = '../Data/osrs_ge.sqlite'
-        self._setup()
+        self.db_file = 'data/osrs_ge.sqlite'
+        self._setup(update_data)
     
-    def _setup(self):
+    def _setup(self, update_data):
         if not os.path.isfile(self.db_file):
             print("Local DB doesn't exists, creating...")
             self.con = sqlite3.connect(self.db_file)
             self._setup_db()
-        else:
-            self.con = sqlite3.connect(self.db_file)
+
+        self.con = sqlite3.connect(self.db_file)
+        if update_data:
             print("Local DB found, checking for updated data...")
             self.update_price_data()
     
@@ -55,9 +56,18 @@ class GrandExchangeDB:
             FROM ITEMS
         """
         return pd.read_sql(query, self.con)
+
+    def query_db(self, query: str):
+        return pd.read_sql(query, self.con)
         
     def update_price_data(self):
-        stored_dates = self.get_price_data()
+        stored_dates = self.query_db(
+            """
+            SELECT DISTINCT datetime
+            FROM PRICES 
+            """
+        )
+        stored_dates['datetime'] = pd.to_datetime(stored_dates['datetime'])
                 
         missing_timestamps = self.all_dates[(
             ~
