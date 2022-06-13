@@ -1,6 +1,7 @@
 import json
 from typing import Dict
 
+import numpy as np
 import pandas as pd
 import requests
 
@@ -48,7 +49,7 @@ def get_all_dates(origin: str = '2022-01-01'):
             freq='1h'
         )
     })
-    df["timestamp"] = (df['datetime'].astype(int) / 1e9).astype(int)
+    df["timestamp"] = (df['datetime'].astype(np.int64) / 1e9).astype(np.int64)
     return df
 
 
