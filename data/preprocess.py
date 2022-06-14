@@ -28,7 +28,7 @@ def load_price_data() -> pd.DataFrame:
         INNER JOIN (
             SELECT DISTINCT item_id
             FROM ITEMS_TRADED
-            WHERE amnt_traded_high > 1e6
+            WHERE amnt_traded_high > 10e6
         ) as SELECTED_ITEMS
         ON PRICES.item_id = SELECTED_ITEMS.item_id
         LEFT JOIN ITEMS
@@ -97,9 +97,9 @@ def fill_missing_data(df: pd.DataFrame) -> pd.DataFrame:
         how='right'
     ).sort_values(['item_id', 'datetime'])
 
-    # Impute missing data using 7 day rolling mean
+    # Impute missing data using mean
     for col in ['price', 'margin', 'volume']:
-        df['avg'] = df.groupby('item_id')[col].transform(lambda x: x.rolling(7, 1).mean())
+        df['avg'] = df.groupby('item_id')[col].transform(lambda x: x.mean())
         df.loc[df[col].isna(), col] = df['avg']
         df.drop('avg', axis=1, inplace=True)
 
@@ -125,9 +125,6 @@ def resample_timestamp(df: pd.DataFrame, n_hours: int) -> pd.DataFrame:
         'volume': 'sum'
     }).reset_index()
 
-    # Standardize prices by group
-    df['price_scaled'] = df.groupby('item_id')['price'].transform(lambda x: (x - x.mean()) / x.std())
-
     return df
 
 
@@ -145,4 +142,4 @@ def load_preprocessed_data(n_hours: int) -> pd.DataFrame:
 
 
 if __name__ == '__main__':
-    load_preprocessed_data()
+    load_preprocessed_data(6)
