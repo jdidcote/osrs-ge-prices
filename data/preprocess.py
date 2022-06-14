@@ -97,9 +97,12 @@ def fill_missing_data(df: pd.DataFrame) -> pd.DataFrame:
         how='right'
     ).sort_values(['item_id', 'datetime'])
 
-    # Impute missing data using mean
+    # Impute missing data using 7 day rolling mean
     for col in ['price', 'margin', 'volume']:
-        df[col] = df.groupby('item_id')[col].transform(lambda x: x.fillna(x.mean()))
+        df['avg'] = df.groupby('item_id')[col].transform(lambda x: x.rolling(7, 1).mean())
+        df.loc[df[col].isna(), col] = df['avg']
+        df.drop('avg', axis=1, inplace=True)
+
     return df
 
 
