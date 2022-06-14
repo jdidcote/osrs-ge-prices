@@ -68,7 +68,39 @@ def remove_price_outliers(df: pd.DataFrame) -> pd.DataFrame:
     df['zscore'] = df.groupby('item_id')['price_change'].transform(zscore)
 
     df['anomalous'] = np.where(df['zscore'] > 5, 1, 0)
+    df = df[df['anomalous'] == 0]
     return df.drop(['price_change', 'zscore', 'anomalous'], axis=1)
+
+
+def fill_missing_data(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Add in new rows for missing timestamps by item_id and impute values with mean
+    @param df: prices dataframe
+    @return:
+    """
+    df = df.copy()
+
+    # Get all periods in the dataset
+    all_periods = df[['datetime']].drop_duplicates().reset_index(drop=True)
+    all_items = df[['item_id', 'name']].drop_duplicates().reset_index(drop=True)
+    df_all = pd.merge(
+        all_periods.assign(key=1),
+        all_items.assign(key=1),
+        on='key'
+    ).drop('key', axis=1)
+
+    # Merge all periods into data
+    df = pd.merge(
+        df,
+        df_all,
+        on=['datetime', 'item_id', 'name'],
+        how='right'
+    ).sort_values(['item_id', 'datetime'])
+
+    # Impute missing data using mean
+    for col in ['price', 'margin', 'volume']:
+        df[col] = df.groupby('item_id')[col].transform(lambda x: x.fillna(x.mean()))
+    return df
 
 
 def load_preprocessed_data() -> pd.DataFrame:
@@ -78,6 +110,7 @@ def load_preprocessed_data() -> pd.DataFrame:
     """
     prices = load_price_data()
     prices = remove_price_outliers(prices)
+    prices = fill_missing_data(prices)
     return prices
 
 
