@@ -67,7 +67,7 @@ def remove_price_outliers(df: pd.DataFrame) -> pd.DataFrame:
 
     df['zscore'] = df.groupby('item_id')['price_change'].transform(zscore)
 
-    df['anomalous'] = np.where(df['zscore'] > 5, 1, 0)
+    df['anomalous'] = np.where(df['zscore'] > 3, 1, 0)
     df = df[df['anomalous'] == 0]
     return df.drop(['price_change', 'zscore', 'anomalous'], axis=1)
 
@@ -106,14 +106,41 @@ def fill_missing_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def load_preprocessed_data() -> pd.DataFrame:
+def resample_timestamp(df: pd.DataFrame, n_hours: int) -> pd.DataFrame:
+    """
+    Resample prices to n_hours and aggregate numeric columns
+    @param df: prices dataframe
+    @param n_hours: number of hours to aggregate up to
+    @return: aggregated prices dataframe
+    """
+    if (n_hours <= 1) or not (isinstance(n_hours, int)):
+        raise ValueError("n_hours must be greater than 1 and an integer")
+
+    df = df.copy()
+    df.set_index(['datetime'], inplace=True)
+
+    df = df.groupby(['item_id', 'name']).resample(f'{n_hours}H').agg({
+        'price': 'mean',
+        'margin': 'mean',
+        'volume': 'sum'
+    }).reset_index()
+
+    # Standardize prices by group
+    df['price_scaled'] = df.groupby('item_id')['price'].transform(lambda x: (x - x.mean()) / x.std())
+
+    return df
+
+
+def load_preprocessed_data(n_hours: int) -> pd.DataFrame:
     """
     Function to combine all preproccessing steps and return a ready to go data set
+    @param n_hours: number of hours to aggregate up to
     @return: pd.DataFrame or cleaned/preprocessed data ready for modelling
     """
     prices = load_price_data()
     prices = remove_price_outliers(prices)
     prices = fill_missing_data(prices)
+    prices = resample_timestamp(prices, n_hours)
     return prices
 
 
