@@ -1,4 +1,4 @@
-from data.database import GrandExchangeDB
+from data import GrandExchangeDB
 
 import pandas as pd
 import numpy as np
@@ -89,7 +89,7 @@ def fill_missing_data(df: pd.DataFrame) -> pd.DataFrame:
         on='key'
     ).drop('key', axis=1)
 
-    # Merge all periods into data
+    # Merge all periods into grandexchange
     df = pd.merge(
         df,
         df_all,
@@ -97,7 +97,7 @@ def fill_missing_data(df: pd.DataFrame) -> pd.DataFrame:
         how='right'
     ).sort_values(['item_id', 'datetime'])
 
-    # Impute missing data using mean
+    # Impute missing grandexchange using mean
     for col in ['price', 'margin', 'volume']:
         df['avg'] = df.groupby('item_id')[col].transform(lambda x: x.mean())
         df.loc[df[col].isna(), col] = df['avg']
@@ -130,9 +130,9 @@ def resample_timestamp(df: pd.DataFrame, n_hours: int) -> pd.DataFrame:
 
 def load_preprocessed_data(n_hours: int) -> pd.DataFrame:
     """
-    Function to combine all preproccessing steps and return a ready to go data set
+    Function to combine all preproccessing steps and return a ready to go grandexchange set
     @param n_hours: number of hours to aggregate up to
-    @return: pd.DataFrame or cleaned/preprocessed data ready for modelling
+    @return: pd.DataFrame or cleaned/preprocessed grandexchange ready for modelling
     """
     prices = load_price_data()
     prices = remove_price_outliers(prices)

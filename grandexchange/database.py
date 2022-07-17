@@ -3,7 +3,7 @@ import sqlite3
 
 import pandas as pd
 
-from data.grand_exchange_api import (
+from wiki_api import (
     get_1h_history,
     get_all_dates,
     get_item_mapping
@@ -13,7 +13,7 @@ from data.grand_exchange_api import (
 class GrandExchangeDB:
     def __init__(self, update_data: bool = True):
         self.all_dates = get_all_dates()
-        self.db_file = 'data/osrs_ge.sqlite'
+        self.db_file = '../data/osrs_ge.sqlite'
         self._setup(update_data)
     
     def _setup(self, update_data):
@@ -24,7 +24,7 @@ class GrandExchangeDB:
 
         self.con = sqlite3.connect(self.db_file)
         if update_data:
-            print("Local DB found, checking for updated data...")
+            print("Local DB found, checking for updated grandexchange...")
             self.update_price_data()
     
     def _setup_db(self):
@@ -83,7 +83,7 @@ class GrandExchangeDB:
 
             ge_price_data = pd.concat(ge_price_list, axis=0)
             ge_price_data.to_sql("prices", self.con, if_exists='append')
-            print(f"Latest price data loaded, {len(missing_timestamps)} new timesteps saved")
+            print(f"Latest price grandexchange loaded, {len(missing_timestamps)} new timesteps saved")
             
 
 if __name__ == '__main__':

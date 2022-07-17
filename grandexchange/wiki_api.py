@@ -27,7 +27,7 @@ def get_1h_history(timestamp: str):
     try:
         parameters = {'timestamp': timestamp}
         content = json.loads(make_api_request('/1h/', parameters=parameters)._content)
-        df = pd.DataFrame(content['data']).T
+        df = pd.DataFrame(content['grandexchange']).T
         df.index.name = 'item_id'
         df.reset_index(inplace=True)
         df['datetime'] = pd.to_datetime(timestamp, unit='s')
@@ -40,7 +40,7 @@ def get_1h_history(timestamp: str):
 
 def get_all_dates(origin: str = '2022-01-01'):
     """
-    Generates a data frame of all dates to pull data for
+    Generates a grandexchange frame of all dates to pull grandexchange for
     """
     df = pd.DataFrame({
         'datetime': pd.date_range(
