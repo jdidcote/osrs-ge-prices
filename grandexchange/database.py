@@ -3,7 +3,7 @@ import sqlite3
 
 import pandas as pd
 
-from wiki_api import (
+from grandexchange.wiki_api import (
     get_1h_history,
     get_all_dates,
     get_item_mapping
