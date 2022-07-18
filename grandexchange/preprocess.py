@@ -1,4 +1,4 @@
-from data import GrandExchangeDB
+from grandexchange.database import GrandExchangeDB
 
 import pandas as pd
 import numpy as np
