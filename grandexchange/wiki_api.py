@@ -26,8 +26,8 @@ def get_1h_history(timestamp: str):
     """
     try:
         parameters = {'timestamp': timestamp}
-        content = json.loads(make_api_request('/1h/', parameters=parameters)._content)
-        df = pd.DataFrame(content['grandexchange']).T
+        response = make_api_request('/1h/', parameters=parameters).json()
+        df = pd.DataFrame(response['data']).T
         df.index.name = 'item_id'
         df.reset_index(inplace=True)
         df['datetime'] = pd.to_datetime(timestamp, unit='s')
@@ -35,7 +35,7 @@ def get_1h_history(timestamp: str):
         return df
     except KeyError:
         print(f'Error in running 1h history for timestamp {timestamp}')
-        return content
+        return
 
 
 def get_all_dates(origin: str = '2022-01-01'):
