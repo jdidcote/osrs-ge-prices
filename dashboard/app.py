@@ -37,6 +37,12 @@ app.layout = html.Div(style={'backgroundColor': colors['background']}, children=
         'color': colors['text']
     }),
 
+    dcc.Dropdown(
+        options=sorted(list(data_loader.item_id_key["name"].unique())),
+        value=["Cannonball"],
+        multi=True
+    ),
+
     dcc.Graph(
         id='prices-over-time',
         figure=fig
