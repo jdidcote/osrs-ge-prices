@@ -7,11 +7,11 @@ from grandexchange.preprocess import load_preprocessed_data
 
 class DataLoader:
     def __init__(self, n_hours_resample: int):
-        self.df = load_preprocessed_data(n_hours_resample)
+        self.prices = load_preprocessed_data(n_hours_resample)
         self._load_id_key()
 
     def _load_id_key(self) -> None:
-        self.item_id_key = self.df[["item_id", "name"]].drop_duplicates()
+        self.item_id_key = self.prices[["item_id", "name"]].drop_duplicates()
 
     def aggregate_time_series(
             self,
@@ -27,13 +27,13 @@ class DataLoader:
             raise ValueError("Start date must be before end date")
 
         def _item_id_mask(df: pd.DataFrame) -> pd.DataFrame:
-            return self.df["item_id"].isin(item_ids)
+            return self.prices["item_id"].isin(item_ids)
 
         def _start_date_mask(df: pd.DataFrame) -> pd.DataFrame:
-            return self.df.index >= start_date
+            return self.prices.index >= start_date
 
         def _end_date_mask(df: pd.DataFrame) -> pd.DataFrame:
-            return self.df.index <= end_date
+            return self.prices.index <= end_date
 
         masks = {
             item_ids: _item_id_mask,
@@ -41,7 +41,7 @@ class DataLoader:
             end_date: _end_date_mask
         }
 
-        df = self.df.copy()
+        df = self.prices.copy()
         for arg, mask in masks.items():
             if arg is not None:
                 df = df[mask(df)]
