@@ -2,6 +2,7 @@ from dash import Dash, dcc, html
 import plotly.express as px
 import pandas as pd
 
+from data_loader import DataLoader
 
 app = Dash(__name__)
 
@@ -10,16 +11,11 @@ colors = {
     'text': '#120101'
 }
 
-df = load_preprocessed_data(3)
+data_loader = DataLoader(6)
 
+df = data_loader.filter_time_series([2, 561, 444])
 
-df = pd.DataFrame({
-    "Fruit": ["Apples", "Oranges", "Bananas", "Apples", "Oranges", "Bananas"],
-    "Amount": [4, 1, 2, 2, 4, 5],
-    "City": ["SF", "SF", "SF", "Montreal", "Montreal", "Montreal"]
-})
-
-fig = px.bar(df, x="Fruit", y="Amount", color="City", barmode="group")
+fig = px.line(df, x="datetime", y="price", color='name')
 
 fig.update_layout(
     plot_bgcolor=colors['background'],
@@ -29,20 +25,20 @@ fig.update_layout(
 
 app.layout = html.Div(style={'backgroundColor': colors['background']}, children=[
     html.H1(
-        children='Hello Dash',
+        children='Grand Exchange Price Prediction',
         style={
             'textAlign': 'center',
             'color': colors['text']
         }
     ),
 
-    html.Div(children='Dash: A we application framework for your data.', style={
+    html.Div(children='A deep learning price prediction model.', style={
         'textAlign': 'center',
         'color': colors['text']
     }),
 
     dcc.Graph(
-        id='example-graph-2',
+        id='prices-over-time',
         figure=fig
     )
 ])
