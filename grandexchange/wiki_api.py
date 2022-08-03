@@ -45,7 +45,7 @@ def get_all_dates(origin: str = '2022-01-01'):
     df = pd.DataFrame({
         'datetime': pd.date_range(
             start=origin,
-            end=pd.Timestamp.now().floor('1h'),
+            end=pd.Timestamp.now().floor('1h') - pd.to_timedelta(1, "d"),
             freq='1h'
         )
     })
