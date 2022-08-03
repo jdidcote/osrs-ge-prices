@@ -13,7 +13,7 @@ class DataLoader:
     def _load_id_key(self) -> None:
         self.item_id_key = self.prices[["item_id", "name"]].drop_duplicates()
 
-    def aggregate_time_series(
+    def filter_time_series(
             self,
             item_ids: Optional[List[int]] = None,
             start_date: Optional[pd.DatetimeIndex] = None,
@@ -26,29 +26,15 @@ class DataLoader:
         if not (start_date is None and end_date is None) and (start_date > end_date):
             raise ValueError("Start date must be before end date")
 
-        def _item_id_mask(df: pd.DataFrame) -> pd.DataFrame:
-            return self.prices["item_id"].isin(item_ids)
-
-        def _start_date_mask(df: pd.DataFrame) -> pd.DataFrame:
-            return self.prices.index >= start_date
-
-        def _end_date_mask(df: pd.DataFrame) -> pd.DataFrame:
-            return self.prices.index <= end_date
-
         masks = {
-            item_ids: _item_id_mask,
-            start_date: _start_date_mask,
-            end_date: _end_date_mask
+            "item_ids": lambda df: self.prices["item_id"].isin(item_ids),
+            "start_date": lambda df: self.prices.index >= start_date,
+            "end_date": lambda df: self.prices.index <= end_date
         }
 
         df = self.prices.copy()
         for arg, mask in masks.items():
-            if arg is not None:
+            if eval(arg) is not None:
                 df = df[mask(df)]
 
         return df
-
-
-if __name__ == '__main__':
-    data_loader = DataLoader(7)
-    print(data_loader.aggregate_time_series())
