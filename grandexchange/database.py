@@ -55,9 +55,16 @@ class GrandExchangeDB:
         """
         return pd.read_sql(query, self.con)
 
+    def get_blacklist_data(self):
+        query = """
+            SELECT *
+            FROM BLACKLIST
+        """
+        return pd.read_sql(query, self.con)
+
     def query_db(self, query: str):
         return pd.read_sql(query, self.con)
-        
+
     def update_price_data(self):
         stored_dates = self.query_db(
             """
@@ -66,25 +73,43 @@ class GrandExchangeDB:
             """
         )
         stored_dates['datetime'] = pd.to_datetime(stored_dates['datetime'])
-                
+
+        # Load all timestamps not found in the db
         missing_timestamps = self.all_dates[(
             ~
             self.all_dates['datetime']
             .isin(
                 stored_dates['datetime']
             )
-        )].timestamp.values
-        
-        if len(missing_timestamps) > 0:
-            ge_price_list = []
-            for i, date in enumerate(missing_timestamps):
-                print(f'Progress {i}/{len(missing_timestamps)}')
-                ge_price_list.append(get_1h_history(date))
+        )].reset_index(drop=True)
 
-            ge_price_data = pd.concat(ge_price_list, axis=0)
-            ge_price_data.to_sql("prices", self.con, if_exists='append')
-            print(f"Latest price grandexchange loaded, {len(missing_timestamps)} new timesteps saved")
-            
+        # Remove blacklisted timestamps from missing_timesteps so we don't query the api
+        blacklist = self.get_blacklist_data()
+        missing_timestamps = missing_timestamps[
+            ~missing_timestamps["timestamp"].isin(
+                blacklist["timestamp"]
+            )
+        ]
+
+        # Get response from each row and blacklist if we don't get any data
+        histories = []
+        for i, row in missing_timestamps.iterrows():
+            history = get_1h_history(row["timestamp"])
+            if len(history) == 0:
+                print(f"Blacklisting {row['datetime']} -- no data found")
+                row.to_frame().T.to_sql("blacklist", self.con, if_exists="append")
+                continue
+            print(f'Progress {i + 1}/{len(missing_timestamps)}')
+            histories.append(history)
+
+        if len(histories) == 0:
+            print("No new data found")
+            return
+
+        ge_price_data = pd.concat(histories, axis=0)
+        ge_price_data.to_sql("prices", self.con, if_exists='append')
+        print(f"Latest price grandexchange loaded, {len(missing_timestamps)} new timesteps saved")
+
 
 if __name__ == '__main__':
     db = GrandExchangeDB()
