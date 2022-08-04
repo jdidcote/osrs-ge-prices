@@ -160,4 +160,7 @@ dependencies:
   - zipp=3.8.1=pyhd8ed1ab_0
   - zlib=1.2.12=ha287fd2_2
   - zstd=1.5.2=hd705a24_2
+  - pip:
+    - cython==0.29.32
+    - pystan==2.19.1.1
 prefix: /Users/joshdidcote/.conda/envs/osrs-ge-prices
