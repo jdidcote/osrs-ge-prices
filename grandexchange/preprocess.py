@@ -5,12 +5,12 @@ import numpy as np
 from scipy.stats import zscore
 
 
-def load_price_data() -> pd.DataFrame:
+def load_price_data(update_data: bool) -> pd.DataFrame:
     """
     Loads the main dataset
     @return: pd.DataFrame
     """
-    ge = GrandExchangeDB()
+    ge = GrandExchangeDB(update_data)
 
     prices = ge.query_db(
         """
@@ -128,13 +128,13 @@ def resample_timestamp(df: pd.DataFrame, n_hours: int) -> pd.DataFrame:
     return df
 
 
-def load_preprocessed_data(n_hours: int) -> pd.DataFrame:
+def load_preprocessed_data(n_hours: int, update_data: bool) -> pd.DataFrame:
     """
     Function to combine all preproccessing steps and return a ready to go grandexchange set
     @param n_hours: number of hours to aggregate up to
     @return: pd.DataFrame or cleaned/preprocessed grandexchange ready for modelling
     """
-    prices = load_price_data()
+    prices = load_price_data(update_data)
     prices = remove_price_outliers(prices)
     prices = fill_missing_data(prices)
     prices = resample_timestamp(prices, n_hours)
