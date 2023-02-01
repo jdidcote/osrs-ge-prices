@@ -1,11 +1,15 @@
 # osrs-ge-prices
 
 - Local env setup
+
 ```commandline
-https://github.com/conda-forge/miniforge
-conda env create -f environment.yml
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 ```
+
 - Git lfs setup
+
 ```commandline
 brew install git-lfs
 git lfs install
